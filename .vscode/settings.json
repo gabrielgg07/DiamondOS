@@ -1,0 +1,8 @@
+{
+    "files.associations": {
+        "interrupt_init.h": "c",
+        "port_io.h": "c",
+        "stdbool.h": "c",
+        "gdt_init.h": "c"
+    }
+}
