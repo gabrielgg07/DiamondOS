@@ -4,6 +4,8 @@
 #define TERMINAL_H
 
 #include <stdint.h>
+#include "cursor.h"
+
 
 
 
@@ -13,13 +15,12 @@
 
 
 // Function declarations
-void update_cursor ();
-void get_cursor_position();
 void terminal_clear();
 void terminal_put_char(char c);
 void terminal_print(const char *str);
-void terminal_color();
-void reset_cursor();
+void terminal_backspace();
+
+
 void terminal_print_hex(uint32_t num); 
 
 #endif

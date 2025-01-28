@@ -3,7 +3,7 @@ AS = nasm
 ASFLAGS = -f elf32
 CC = i686-elf-gcc
 LD = i686-elf-ld
-CFLAGS = -ffreestanding -O0 -nostdlib -m32 -Ikernel
+CFLAGS = -ffreestanding -O0 -nostdlib -m32 -Ikernel -mno-80387 -mno-fp-ret-in-387
 LDFLAGS = -T linker.ld -m elf_i386
 
 # Directories
@@ -27,12 +27,13 @@ KERNEL_SRC = kernel/kernel.c
 UTIL_SRC = $(wildcard kernel/util/*.c)
 TERM_SRC = $(wildcard kernel/terminal/*.c)
 PORT_IO_SRC = $(wildcard kernel/port_io/*.c)
+KEYBOARD_SRC = $(wildcard kernel/drivers/keyboard/*.c)
 HAL_SRC = $(wildcard kernel/hal/*.c)
 INT_SRC = $(wildcard kernel/interrupts/*.c)
 GDT_SRC = $(wildcard kernel/gdt/*.c)
 
 # Source and object file lists
-SRC_FILES = $(KERNEL_SRC) $(UTIL_SRC) $(TERM_SRC) $(PORT_IO_SRC) $(INT_SRC) $(GDT_SRC) $(HAL_SRC)
+SRC_FILES = $(KERNEL_SRC) $(UTIL_SRC) $(TERM_SRC) $(PORT_IO_SRC) $(INT_SRC) $(GDT_SRC) $(HAL_SRC) $(KEYBOARD_SRC)
 OBJ_FILES = $(patsubst kernel/%, $(BUILD_DIR)/%, $(SRC_FILES:.c=.o)) $(INT_ASM_OBJ) $(INT_C_OBJ) $(START_OBJ)
 
 
@@ -70,13 +71,15 @@ $(KERNEL_BIN): $(START_OBJ) $(OBJ_FILES) $(INT_ASM_OBJ) $(INT_C_OBJ)
 	@echo "Linking kernel with: $^"
 	$(LD) $(LDFLAGS) -o $@ $^
 
-
+ISO_NAME = $(ISO_DIR)/myos.iso
+GRUB_CFG = grub/grub.cfg
 # Create the bootable ISO image
-$(ISO_DIR)/myos.iso: $(KERNEL_BIN) grub/grub.cfg
+$(ISO_NAME): $(KERNEL_BIN) $(GRUB_CFG)
 	mkdir -p $(ISO_DIR)/boot/grub
 	cp $(KERNEL_BIN) $(ISO_DIR)/boot/kernel.bin
-	cp grub/grub.cfg $(ISO_DIR)/boot/grub/
-	wsl grub-mkrescue -o $@ $(ISO_DIR)
+	cp $(GRUB_CFG) $(ISO_DIR)/boot/grub/
+	"C:/Windows/System32/wsl.exe" grub-mkrescue -o $@ $(ISO_DIR)
+
 
 # Run the OS in QEMU
 run: $(ISO_DIR)/myos.iso

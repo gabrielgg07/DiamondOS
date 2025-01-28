@@ -8,48 +8,74 @@ unsigned int screen_size = 80 * 25;
 static uint8_t cursor_x = 0;
 static uint8_t cursor_y = 0;
 
-void get_cursor_position() {
-    uint16_t pos = 0;
-    
-    // Get high byte
-    outb(0x03D4, 0x0E);
-    pos = inb(0x03D5) << 8;
-    
-    // Get low byte
-    outb(0x03D4, 0x0F);
-    pos |= inb(0x03D5);
-    
-    cursor_x = pos % VGA_WIDTH;
-    cursor_y = pos / VGA_WIDTH;
+
+void scroll() {
+    // Each row in VGA text mode is (VGA_WIDTH * 2) bytes
+    // because each character has 2 bytes: one for ASCII, one for the attribute.
+    int bytes_per_row = VGA_WIDTH * 2;
+
+    // 1) Move rows [1..VGA_HEIGHT-1] up to rows [0..VGA_HEIGHT-2]
+    for (int row = 1; row < VGA_HEIGHT; row++) {
+        for (int col = 0; col < bytes_per_row; col++) {
+            // Calculate the source index (row) and destination index (row-1)
+            int src_index  = (row * bytes_per_row) + col;
+            int dest_index = ((row - 1) * bytes_per_row) + col;
+
+            vidmem[dest_index] = vidmem[src_index];
+        }
+    }
+
+    // 2) Clear the last row (row = VGA_HEIGHT - 1)
+    int last_row_start = (VGA_HEIGHT - 1) * bytes_per_row;
+    for (int col = 0; col < bytes_per_row; col += 2) {
+        vidmem[last_row_start + col]     = ' ';   // Space character
+        vidmem[last_row_start + col + 1] = 0x07;  // Default VGA attribute (white-on-black)
+    }
 }
 
-void update_cursor () {
-    if (cursor_x > 79 && cursor_y > 24) {
-        cursor_x = 0;
-        cursor_y = 0;
-    }
-    else if (cursor_x > 79){
-        cursor_x = 0;
-        cursor_y++;
-    }
-    else {
-        cursor_x++;
-    }
-}
 
 void terminal_clear(){
-
+    
     for (unsigned int i = 0; i < screen_size; i++) {
+
         vidmem[i * 2] = ' ';
         vidmem[i * 2 + 1] = 0x07;
     }
 }
 void terminal_put_char(char c){
-        int index = cursor_y * VGA_WIDTH + cursor_x;
-        vidmem[index * 2] = c;
-        vidmem[index * 2 + 1] = 0x07;
-        update_cursor();
+        
+    int cursor_y;
+    int cursor_x;
+    get_cursor_position(&cursor_y,&cursor_x);
 
+    if (cursor_y >= VGA_HEIGHT) {
+        scroll();
+        //cursor_x = 0;
+        cursor_y = VGA_HEIGHT - 1;
+    }
+    int index = cursor_y * VGA_WIDTH + cursor_x;
+
+
+    if (c == '\n') {
+        // Handle new line: move to the next row, reset column
+        cursor_x = 0;
+        cursor_y++;
+    } else {
+        // Write character to video memory
+        vidmem[index * 2] = c;
+        vidmem[index * 2 + 1] = 0x07; // Attribute byte (white text on black background)
+        cursor_x++; // Move to the next column
+    }
+
+    // Handle line wrapping
+    if (cursor_x >= VGA_WIDTH) {
+        cursor_x = 0;
+        cursor_y++;
+    }
+
+
+    // Update hardware cursor
+    update_cursor(cursor_y, cursor_x);
 }
 void terminal_print(const char *str){
     int i = 0;
@@ -59,12 +85,7 @@ void terminal_print(const char *str){
     }
 }
 
-void terminal_color(){
-        int index = cursor_y * VGA_WIDTH + cursor_x;
-        //vidmem[index * 2] = c;
-        vidmem[index * 2 + 1] = 0x97;
-        update_cursor();
-}
+
 
 void terminal_print_hex(uint32_t num) {
     char hex_chars[] = "0123456789ABCDEF";
@@ -80,7 +101,29 @@ void terminal_print_hex(uint32_t num) {
     terminal_print(buffer);
 }
 
-void reset_cursor(){
-    cursor_x = 0;
-    cursor_y = 0;
+void terminal_backspace() {
+    int cursor_y;
+    int cursor_x;
+    get_cursor_position(&cursor_y, &cursor_x);
+
+    // Move the cursor back
+    if (cursor_x > 0) {
+        cursor_x--;
+    } else if (cursor_y > 0) {
+        // If at the start of a line, move to the end of the previous line
+        cursor_y--;
+        cursor_x = VGA_WIDTH - 1;
+    } else {
+        // Cursor is already at the top-left; nothing to backspace
+        return;
+    }
+
+    // Clear the character at the new position
+    int index = (cursor_y * VGA_WIDTH + cursor_x) * 2; // Calculate video memory index
+    vidmem[index] = ' ';        // Clear with a space
+    vidmem[index + 1] = 0x07;   // Default attribute (white on black)
+
+    // Update the cursor
+    update_cursor(cursor_y, cursor_x);
 }
+

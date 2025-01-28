@@ -5,9 +5,11 @@
 #include <stdbool.h>
 #include "../port_io/port_io.h"
 #include "../terminal/terminal.h"
+#include "../drivers/keyboard/keyboard.h"
 
 #define IDT_SIZE 256
 #define IDT_MAX_DESCRIPTORS 256
+
 
 typedef struct {
     uint16_t    isr_low;      // The lower 16 bits of the ISR's address
@@ -33,9 +35,11 @@ static bool vectors[IDT_MAX_DESCRIPTORS];
 
 extern void* isr_stub_table[];
 
+extern void keyboard_interrupt_handler();
 
 
-void idt_set_descriptor(uint8_t vector,  uintptr_t isr, uint8_t flags);
+
+void idt_set_descriptor(uint8_t vector,  void* isr, uint8_t flags);
 
 void idt_init();
 
