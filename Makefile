@@ -28,12 +28,13 @@ UTIL_SRC = $(wildcard kernel/util/*.c)
 TERM_SRC = $(wildcard kernel/terminal/*.c)
 PORT_IO_SRC = $(wildcard kernel/port_io/*.c)
 KEYBOARD_SRC = $(wildcard kernel/drivers/keyboard/*.c)
+PROGRAM_SRC = $(wildcard programs/*/*.c)
 HAL_SRC = $(wildcard kernel/hal/*.c)
 INT_SRC = $(wildcard kernel/interrupts/*.c)
 GDT_SRC = $(wildcard kernel/gdt/*.c)
 
 # Source and object file lists
-SRC_FILES = $(KERNEL_SRC) $(UTIL_SRC) $(TERM_SRC) $(PORT_IO_SRC) $(INT_SRC) $(GDT_SRC) $(HAL_SRC) $(KEYBOARD_SRC)
+SRC_FILES = $(KERNEL_SRC) $(UTIL_SRC) $(TERM_SRC) $(PORT_IO_SRC) $(INT_SRC) $(GDT_SRC) $(HAL_SRC) $(KEYBOARD_SRC) $(PROGRAM_SRC)
 OBJ_FILES = $(patsubst kernel/%, $(BUILD_DIR)/%, $(SRC_FILES:.c=.o)) $(INT_ASM_OBJ) $(INT_C_OBJ) $(START_OBJ)
 
 

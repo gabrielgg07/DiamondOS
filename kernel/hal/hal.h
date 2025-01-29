@@ -6,5 +6,6 @@
 #include "../terminal/terminal.h"
 
 void hal_init();
+void power_off();
 
 #endif

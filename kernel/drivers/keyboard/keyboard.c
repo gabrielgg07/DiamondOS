@@ -2,40 +2,37 @@
 
 static bool pressed = false;
 
-
+char keyboard_buffer[KEYBOARD_BUFFER_SIZE];
+int keyboard_buffer_head = 0;
+int keyboard_buffer_tail = 0;
 
 
 __attribute__((interrupt))
 void keyboard_interrupt_handler(interrupt_frame_t* frame) {
-    // Read the scancode from the keyboard controller
     uint8_t scancode = inb(0x60);
-    const char *character = scancode_to_string[scancode];
 
-
-    // Send End of Interrupt (EOI) to the PIC
+    // Send End of Interrupt (EOI) to PIC
     outb(0x20, 0x20);
 
-    // Check if it's a break code (key up event)
-    if (scancode & 0x80) {
-            // Key up event (MSB is set)
-        if (pressed) {
-            pressed = false;  // Update state to "not pressed"
-            uint8_t keycode = scancode & 0x7F;  // Remove the "key up" bit
-            
-        }
-    } else {
-        // Key down event (MSB is clear)
-        if (!pressed) {
-            pressed = true;  // Update state to "pressed"
-            if (character == "Enter"){
-                terminal_print("\n");
-            }else if (character =="Space"){
-                terminal_print(" ");
-            }else if (character == "Backspace") {
-                terminal_backspace();
-            }else{
-                terminal_print(character);
-            }
+    // Handle scancode (convert to character or store raw scancode)
+    if (!(scancode & 0x80)) {  // Key down event (ignore key up)
+        const char *character = scancode_to_string[scancode];
+        if (character) {
+            keyboard_buffer_enqueue(character);  // Store character in a buffer
         }
     }
+}
+
+void keyboard_buffer_enqueue(const char *character) {
+    keyboard_buffer[keyboard_buffer_head] = *character;
+    keyboard_buffer_head = (keyboard_buffer_head + 1) % KEYBOARD_BUFFER_SIZE;
+}
+
+char keyboard_buffer_dequeue() {
+    if (keyboard_buffer_head == keyboard_buffer_tail) {
+        return 0;  // Buffer is empty
+    }
+    char c = keyboard_buffer[keyboard_buffer_tail];
+    keyboard_buffer_tail = (keyboard_buffer_tail + 1) % KEYBOARD_BUFFER_SIZE;
+    return c;
 }

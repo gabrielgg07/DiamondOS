@@ -5,6 +5,8 @@
 #include "../../terminal/terminal.h"
 #include <stdbool.h>
 
+#define KEYBOARD_BUFFER_SIZE 256
+
 
 
 typedef struct {
@@ -16,6 +18,8 @@ typedef struct {
 } interrupt_frame_t;
 
 void keyboard_interrupt_handler(interrupt_frame_t* frame);
+void keyboard_buffer_enqueue(const char *character);
+char keyboard_buffer_dequeue();
 
 
 static const char* scancode_to_string[128] = {
@@ -33,8 +37,8 @@ static const char* scancode_to_string[128] = {
     [0x0B] = "0",
     [0x0C] = "-",
     [0x0D] = "=",
-    [0x0E] = "Backspace",
-    [0x0F] = "Tab",
+    [0x0E] = "\b",
+    [0x0F] = "\t",
     [0x10] = "Q",
     [0x11] = "W",
     [0x12] = "E",
@@ -47,7 +51,7 @@ static const char* scancode_to_string[128] = {
     [0x19] = "P",
     [0x1A] = "[",
     [0x1B] = "]",
-    [0x1C] = "Enter",
+    [0x1C] = "\n",
     [0x1D] = "Ctrl",
     // Here’s the special one you asked for:
     [0x1E] = "A",    // Scancode 0x1E => "A"
@@ -77,7 +81,11 @@ static const char* scancode_to_string[128] = {
     [0x36] = "RightShift",
     [0x37] = "*",
     [0x38] = "Alt",
-    [0x39] = "Space",
+    [0x39] = " ",
+    [0x4B] = "<",
+    [0x4D] = ">",
+    [0x48] = "^",
+    [0x50] = "Down"
     // ...
     // Fill in the rest as needed, up to 0x7F
 };

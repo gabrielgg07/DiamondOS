@@ -20,6 +20,16 @@ void update_cursor(int row, int col) {
     outb(VGA_DATA_PORT, position & 0xFF);
 }
 
+void reset_cursor() {
+    uint16_t position = 0;
+    outb(VGA_COMMAND_PORT, 14);          // Select the high cursor byte
+    outb(VGA_DATA_PORT, (position >> 8) & 0xFF);
+
+    // Send the low byte of the cursor position
+    outb(VGA_COMMAND_PORT, 15);          // Select the low cursor byte
+    outb(VGA_DATA_PORT, position & 0xFF);
+}
+
 void init_cursor(){
     update_cursor(0,0);
 }

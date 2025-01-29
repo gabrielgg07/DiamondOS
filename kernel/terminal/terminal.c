@@ -35,7 +35,7 @@ void scroll() {
 
 
 void terminal_clear(){
-    
+    reset_cursor();
     for (unsigned int i = 0; i < screen_size; i++) {
 
         vidmem[i * 2] = ' ';
@@ -60,6 +60,11 @@ void terminal_put_char(char c){
         // Handle new line: move to the next row, reset column
         cursor_x = 0;
         cursor_y++;
+        if (cursor_y >= VGA_HEIGHT) {
+            scroll();
+            //cursor_x = 0;
+            cursor_y = VGA_HEIGHT - 1;
+        }
     } else {
         // Write character to video memory
         vidmem[index * 2] = c;
@@ -127,3 +132,47 @@ void terminal_backspace() {
     update_cursor(cursor_y, cursor_x);
 }
 
+
+
+char terminal_handle_input() {
+    char c = keyboard_buffer_dequeue();
+    if (c) {
+        if (c == '\n') {
+            // Handle Enter
+            terminal_print("\n");
+        } else if (c == '\b') {
+            // Handle Backspace
+            //terminal_backspace();
+        } else if (c == '\t'){
+            terminal_print("    ");
+        } else if (c == '<' || c == '>' || c == '^'){
+            terminal_arrow(c);
+        }else {
+            // Print the character
+            terminal_put_char(c);
+        }
+    }
+    return c;
+}
+
+void terminal_arrow(char c){
+    int cursor_y;
+    int cursor_x;
+    get_cursor_position(&cursor_y, &cursor_x);
+    if (c == '<' ){
+        if (cursor_x > 0){
+            cursor_x--;
+        }
+    }
+    else if (c == '>' ){
+        if (cursor_x < VGA_WIDTH){
+            cursor_x++;
+        }
+    }
+    else if (c == '^' ){
+        if (cursor_y > 0){
+            cursor_y--;
+        }
+    }
+    update_cursor(cursor_y, cursor_x);
+}
