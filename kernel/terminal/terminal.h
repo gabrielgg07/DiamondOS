@@ -23,7 +23,7 @@ void terminal_print(const char *str);
 void terminal_backspace();
 char terminal_handle_input();
 void terminal_arrow(char c);
-
+void uint32_to_hex(uint32_t num, char* buffer);
 
 void terminal_print_hex(uint32_t num); 
 

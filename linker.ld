@@ -4,11 +4,15 @@ SECTIONS {
     /* Start at 1MB */
     . = 1M;
 
+    /* Ensure Multiboot2 header is at the very start */
+    .multiboot_header ALIGN(8) : {
+        KEEP(*(.multiboot_header))
+    }
+
     /* Code Section */
     .text ALIGN(4K) : {
-        *(.multiboot)  /* Multiboot header */
-        *(.text*)      /* Code */
-    }
+        *(.text*)
+    }   
 
     /* Read-only data */
     .rodata ALIGN(4K) : {

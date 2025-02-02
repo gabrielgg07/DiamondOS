@@ -1,72 +1,30 @@
 
 #include <stdint.h>
-#include "terminal/terminal.h"
 #include "hal/hal.h"
 #include "../programs/cli/cli.h"
+#include "drivers/graphics/vesa.h"
+
 
 #include <stdint.h>
 
+extern uint32_t magic;
+extern uint32_t mb_info;
 
-void booting_message();
 
 void kernel_main() {
-    booting_message();
     hal_init();
-    terminal_clear();
-    terminal_print("Hello Welcome to Diamomd OS, Press any key to contiue.");
-    char check = '\0';
-    while (check == '\0'){
-        check = terminal_handle_input();
+    load_vesa_from_grub(magic, mb_info);
+    // Draw a grid pattern to verify both axes.
+    char c;
+
+    while (1)
+    {
+        while ((c = keyboard_buffer_dequeue()) == 0);
+        // Print the character on the screen
+        char str[2] = {c, '\0'}; // Convert to string
+        vesa_print_string(str, 0xFFFFFFFF);
+
     }
-    run_cli();
+    while(1);
 
 }
-
-void print_diamond();
-
-void booting_message(){
-    int i = 0;
-    while(i < 3){
-        int a =0;
-        terminal_clear();
-        terminal_print("Booting Diamond OS");
-        while (a < 300000000){
-            a++;
-        }
-        a =0;
-        terminal_clear();
-        terminal_print("Booting Diamond OS.");
-        while (a < 300000000){
-            a++;
-        }
-        a =0;
-        terminal_clear();
-        terminal_print("Booting Diamond OS..");
-        while (a < 300000000){
-            a++;
-        }
-        a =0;
-        terminal_clear();
-        terminal_print("Booting Diamond OS...");
-        while (a < 300000000){
-            a++;
-        }
-        i++;
-    }
-    terminal_clear();
-    int a =0;
-    print_diamond();
-    while (a < 300000000){
-        a++;
-    }
-}
-
-void print_diamond() {
-    terminal_print("   /\\ \n");
-    terminal_print("  /  \\ \n");
-    terminal_print(" /    \\\n");
-    terminal_print(" \\    /\n");
-    terminal_print("  \\  /\n");
-    terminal_print("   \\/\n");
-}
-

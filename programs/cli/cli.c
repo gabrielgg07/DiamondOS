@@ -57,25 +57,39 @@ void run_cli() {
 
 void process_command() {
     
-    if (my_strncmp(command, "ADD", 3) == 0) {
+    if (my_strncmp(command, "ADD ", 4) == 0) {
         add_com();
     }
-    else if (!my_strncmp(command, "CAT", 3)){
+    else if (my_strncmp(command, "HELP", 4) == 0) {
+        help_com();
+    }
+    else if (!my_strncmp(command, "DIVIDE ", 7)){
+        divide_com();
+    }
+    else if (!my_strncmp(command, "CAT ", 4)){
         terminal_print("Herro from the filesystem\n");
     }
     else if (!my_strncmp(command, "POWER-OFF", 9)){
+        disable_cursor();
         power_off();
     }
-    else if (!my_strncmp(command, "ECHO", 4)){
-        char *print = command + 4;
+    else if (!my_strncmp(command, "ECHO ", 5)){
+        char *print = command + 5;
         terminal_print(print);
         terminal_print("\n");
     }
     else{
-        terminal_print("Invalid Command: ");
-        terminal_print(command);
+        terminal_print("Invalid Command: Use HELP for more info ");
         terminal_print("\n");
     }
+}
+
+void help_com(){
+    terminal_print("Supported Commands: ADD <Num> <Num> \n");
+    terminal_print("                    DIVIDE <NUM> <NUM> \n");
+    terminal_print("                    POWER_OFF, Turns off PC \n");
+    terminal_print("                    ECHO \"String\" \n");
+    terminal_print("                    DIVIDE <NUM> <NUM> \n");
 }
 
 
@@ -162,3 +176,50 @@ int isdigit(char c) {
 }
 
 
+
+
+void divide_com() {
+    char *ptr = command + 6; // Skip "ADD" (3 chars)
+
+    // Step 1: Skip leading spaces
+    while (*ptr == ' ') {
+        ptr++;
+    }
+
+    // Step 2: Extract the first number manually
+    int num1 = 0;
+    if (!isdigit(*ptr)) { // If first character isn't a digit, invalid input
+        terminal_print("Invalid DIVIDE format. Expected: DIVIDE <num1> <num2>\n");
+        return;
+    }
+    while (isdigit(*ptr)) { // Convert ASCII '0'-'9' to an integer
+        num1 = num1 * 10 + (*ptr - '0');
+        ptr++;
+    }
+
+    // Step 3: Skip spaces between numbers
+    while (*ptr == ' ') {
+        ptr++;
+    }
+
+    // Step 4: Extract the second number manually
+    int num2 = 0;
+    if (!isdigit(*ptr)) { // If no second number, invalid input
+        terminal_print("Invalid DIVIDE format. Expected: DIVIDE <num1> <num2>\n");
+        return;
+    }
+    while (isdigit(*ptr)) { // Convert ASCII '0'-'9' to an integer
+        num2 = num2 * 10 + (*ptr - '0');
+        ptr++;
+    }
+
+    // Step 5: Print the extracted numbers for debugging
+    terminal_print("Result: ");
+    
+    char buffer[50];
+    int result = num1 / num2;
+    int_to_string(buffer, result); // Convert int to string (custom function)
+    terminal_print(buffer);
+
+    terminal_print("\n");
+}

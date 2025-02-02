@@ -96,8 +96,8 @@ void idt_init() {
         }
         vectors[vector] = true;  // Mark the vector as active
     }
-    outb(0x21, 0xFD); // Master PIC: Mask all except IRQ1
-    outb(0xA1, 0xFF); // Slave PIC: Mask all
+    outb(0x21, 0xFD); // Master PIC: Unmask IRQ1 (bit 1) and IRQ2 (bit 2, needed for Slave PIC)
+    //outb(0xA1, 0xEF); // Slave PIC: Unmask IRQ12 (bit 4)
     // Load the IDT into the CPU
     __asm__ volatile ("lidt %0" : : "m"(idtr));  // Load the new IDT
     __asm__ volatile ("sti");  // Set the interrupt flag to enable interrupts

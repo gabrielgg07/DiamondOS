@@ -90,6 +90,16 @@ void terminal_print(const char *str){
     }
 }
 
+void uint32_to_hex(uint32_t num, char* buffer) {
+    const char hex_chars[] = "0123456789ABCDEF";
+    buffer[0] = '0';
+    buffer[1] = 'x';
+    for (int i = 0; i < 8; i++) {
+        // Shift to get the current nibble and mask with 0xF
+        buffer[2 + i] = hex_chars[(num >> ((7 - i) * 4)) & 0xF];
+    }
+    buffer[10] = '\0';
+}
 
 
 void terminal_print_hex(uint32_t num) {

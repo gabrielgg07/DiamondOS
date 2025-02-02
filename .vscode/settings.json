@@ -6,6 +6,9 @@
         "gdt_init.h": "c",
         "cli.h": "c",
         "keyboard.h": "c",
-        "terminal.h": "c"
+        "terminal.h": "c",
+        "graphics.h": "c",
+        "stdint.h": "c",
+        "hal.h": "c"
     }
 }

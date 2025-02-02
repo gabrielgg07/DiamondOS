@@ -4,6 +4,7 @@
 #include "../../port_io/port_io.h"
 #include "../../terminal/terminal.h"
 #include <stdbool.h>
+#include "../graphics/vesa.h"
 
 #define KEYBOARD_BUFFER_SIZE 256
 
